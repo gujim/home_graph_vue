@@ -17,6 +17,15 @@
       <span> {{ getTitle.value }} </span>
     </template>
     <BasicForm @register="registerForm">
+      <template #avatar="{ model, field }">
+        <CropperAvatar
+          :value="model[field]"
+          btnText="更换头像"
+          :btnProps="{ preIcon: 'ant-design:cloud-upload-outlined' }"
+          @change="updateAvatar"
+          width="150"
+        />
+      </template>
       <template #familyMemberPropertiesList>
         <BasicTable
           @register="registerFamilyMemberPropertiesTable"
@@ -34,9 +43,10 @@
   import { Icon } from '/@/components/Icon';
   import { BasicTable, useTable } from '/@/components/Table';
   import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
+  import { CropperAvatar } from '/@/components/Cropper';
   export default defineComponent({
     name: 'ViewsFamilyFamilyMemberForm',
-    components: { Icon, BasicForm, BasicTable, BasicDrawer, familyMemberSelector }
+    components: { Icon, BasicForm, BasicTable, BasicDrawer, familyMemberSelector, CropperAvatar }
   });
 </script>
 <script lang="ts" setup>
@@ -46,10 +56,15 @@
   import { useMessage } from '/@/hooks/web/useMessage';
   import { router } from '/@/router';
   import { FamilyMember, familyMemberSave, familyMemberForm } from '/@/api/family/familyMember';
+  import { useGlobSetting } from '/@/hooks/setting';
+  import logoImg from '/@/assets/images/logo.png';
 
   useComponentRegister('FamilyMemberSelector', familyMemberSelector)
 
   const emit = defineEmits(['success', 'register']);
+
+  // 头像
+  const avatarBase64 = ref<String>('');
 
   const { t } = useI18n('family.familyMember');
   const { showMessage } = useMessage();
@@ -128,6 +143,12 @@
         format: 'YYYY-MM-DD HH:mm',
         showTime: { format: 'HH:mm' },
       },
+    },{
+      label: t('头像'),
+      field: 'avatarUrl',
+      component: 'Input',
+      slot: 'avatar',
+      colProps: { lg: 24, md: 24 },
     },
     {
       label: t('备注信息'),
@@ -135,18 +156,6 @@
       component: 'InputTextArea',
       componentProps: {
         maxlength: 500,
-      },
-      colProps: { lg: 24, md: 24 },
-    },
-    {
-      label: t('图片上传'),
-      field: 'dataMap',
-      component: 'Upload',
-      componentProps: {
-        loadTime: computed(() => record.value.__t),
-        bizKey: computed(() => record.value.id),
-        bizType: 'familyMember_image',
-        uploadType: 'image',
       },
       colProps: { lg: 24, md: 24 },
     },
@@ -283,8 +292,15 @@
     resetFields();
     setDrawerProps({ loading: true });
     const res = await familyMemberForm(data);
+    // 处理图片
     record.value = (res.familyMember || {}) as FamilyMember;
     record.value.__t = new Date().getTime();
+    if (record.value.avatarUrl) {
+      const { ctxPath } = useGlobSetting();
+      let url = record.value.avatarUrl || '/ctxPath/static/images/user1.jpg';
+      url = url.replace('/ctxPath/', ctxPath + '/');
+      record.value.avatarUrl = url || logoImg;
+    }
     setFieldsValue(record.value);
     setFamilyMemberPropertiesTableData(res);
     setDrawerProps({ loading: false });
@@ -293,6 +309,9 @@
   async function handleSubmit() {
     try {
       const data = await validate();
+      if (avatarBase64.value != '') {
+        data.avatarBase64 = avatarBase64.value;
+      }
       setDrawerProps({ confirmLoading: true });
       const params: any = {
         isNewRecord: record.value.isNewRecord,
@@ -312,5 +331,11 @@
     } finally {
       setDrawerProps({ confirmLoading: false });
     }
+  }
+
+
+  // 头像处理
+  function updateAvatar(source: string) {
+    avatarBase64.value = source;
   }
 </script>

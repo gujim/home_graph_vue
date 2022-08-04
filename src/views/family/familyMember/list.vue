@@ -16,6 +16,8 @@
         </a-button>
       </template>
       <template #firstColumn="{ record }">
+        
+        <TableImg :size="60" :simpleShow="true" :imgList="[avatarUrl(record)]" />
         <a @click="handleForm({ id: record.id })">
           {{ record.name }}
         </a>
@@ -26,9 +28,10 @@
 </template>
 <script lang="ts">
   import InputForm from './form.vue';
+  import { TableImg } from '/@/components/Table';
   export default defineComponent({
     name: 'ViewsFamilyFamilyMemberList',
-    components: { Icon, BasicTable, InputForm }
+    components: { Icon, BasicTable, InputForm, TableImg }
   });
 </script>
 <script lang="ts" setup>
@@ -38,9 +41,11 @@
   import { router } from '/@/router';
   import { Icon } from '/@/components/Icon';
   import { BasicTable, BasicColumn, useTable } from '/@/components/Table';
-  import { familyMemberDelete, familyMemberListData } from '/@/api/family/familyMember';
+  import { FamilyMember, familyMemberDelete, familyMemberListData } from '/@/api/family/familyMember';
   import { useDrawer } from '/@/components/Drawer';
   import { FormProps } from '/@/components/Form';
+  import { useGlobSetting } from '/@/hooks/setting';
+  import logoImg from '/@/assets/images/logo.png';
 
   const { t } = useI18n('family.familyMember');
   const { showMessage } = useMessage();
@@ -273,5 +278,16 @@
 
   function handleSuccess() {
     reload();
+  }
+
+  function avatarUrl(record: FamilyMember){
+    if (record.avatarUrl) {
+      const { ctxPath } = useGlobSetting();
+      let url = record.avatarUrl || '/ctxPath/static/images/user1.jpg';
+      url = url.replace('/ctxPath/', ctxPath + '/');
+      return url || logoImg;
+    }else{
+      return ""
+    }
   }
 </script>

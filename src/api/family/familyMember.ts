@@ -20,6 +20,9 @@ export interface FamilyMember extends BasicModel<FamilyMember> {
   levers?: string; // 对象
   birthday?: string; // 出生日期
   userId?: string; // 用户
+  avatar?: string; // 头像
+  avatarUrl?: string; //头像url
+  avatarBase64?: string; // 头像base64
   familyMemberPropertiesList?: any[]; // 子表列表
 }
 
