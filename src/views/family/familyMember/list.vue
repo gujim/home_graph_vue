@@ -16,11 +16,16 @@
         </a-button>
       </template>
       <template #firstColumn="{ record }">
-        
-        <TableImg :size="60" :simpleShow="true" :imgList="[avatarUrl(record)]" />
-        <a @click="handleForm({ id: record.id })">
-          {{ record.name }}
-        </a>
+        <div style="display: flex;flex-direction: row;align-items: center;">
+          <TableImg :size="60" :simpleShow="true" :imgList="[avatarUrl(record)]" style="margin:0;" />
+          <div style="display:flex;flex-direction: column;align-items:flex-start;">
+            <a @click="handleForm({ id: record.id })">
+              {{ record.name }}
+            </a>
+            <Icon icon="ant-design:man-outlined" style="color: green" v-if="record.sex === '1'"></Icon>
+            <Icon icon="ant-design:woman-outlined" style="color: pink" v-if="record.sex === '2'"></Icon>
+          </div>
+        </div>
       </template>
     </BasicTable>
     <InputForm @register="registerDrawer" @success="handleSuccess" />
@@ -45,7 +50,7 @@
   import { useDrawer } from '/@/components/Drawer';
   import { FormProps } from '/@/components/Form';
   import { useGlobSetting } from '/@/hooks/setting';
-  import logoImg from '/@/assets/images/logo.png';
+  import memberImg from '/@/assets/images/member.png';
 
   const { t } = useI18n('family.familyMember');
   const { showMessage } = useMessage();
@@ -154,19 +159,9 @@
       slots: { customRender: 'firstColumn' },
     },
     {
-      title: t('成员性别'),
-      dataIndex: 'sex',
-      key: 'a.sex',
-      sorter: true,
-      width: 130,
-      align: 'center',
-      dictType: 'sys_user_sex',
-    },
-    {
       title: t('父亲'),
       dataIndex: 'fatherName',
       key: 'a.fatherName',
-      sorter: true,
       width: 130,
       align: 'left',
     },
@@ -174,7 +169,6 @@
       title: t('母亲'),
       dataIndex: 'motherName',
       key: 'a.motherName',
-      sorter: true,
       width: 130,
       align: 'left',
     },
@@ -191,7 +185,6 @@
       title: t('对象'),
       dataIndex: 'leversName',
       key: 'a.leversName',
-      sorter: true,
       width: 130,
       align: 'left',
     },
@@ -202,15 +195,6 @@
       sorter: true,
       width: 130,
       align: 'center',
-    },
-    {
-      title: t('状态'),
-      dataIndex: 'status',
-      key: 'a.status',
-      sorter: true,
-      width: 130,
-      align: 'center',
-      dictType: 'sys_search_status',
     },
     {
       title: t('创建时间'),
@@ -285,9 +269,9 @@
       const { ctxPath } = useGlobSetting();
       let url = record.avatarUrl || '/ctxPath/static/images/user1.jpg';
       url = url.replace('/ctxPath/', ctxPath + '/');
-      return url || logoImg;
+      return url || memberImg
     }else{
-      return ""
+      return memberImg
     }
   }
 </script>
