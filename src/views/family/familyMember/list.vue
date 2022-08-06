@@ -17,7 +17,7 @@
       </template>
       <template #firstColumn="{ record }">
         <div style="display: flex;flex-direction: row;align-items: center;">
-          <TableImg :size="60" :simpleShow="true" :imgList="[avatarUrl(record)]" style="margin:0;" />
+          <TableImg :size="60" :simpleShow="true" :imgList="[getAvatarUrl(record)]" style="margin:0;" />
           <div style="display:flex;flex-direction: column;align-items:flex-start;">
             <a @click="handleForm({ id: record.id })">
               {{ record.name }}
@@ -46,11 +46,10 @@
   import { router } from '/@/router';
   import { Icon } from '/@/components/Icon';
   import { BasicTable, BasicColumn, useTable } from '/@/components/Table';
-  import { FamilyMember, familyMemberDelete, familyMemberListData } from '/@/api/family/familyMember';
+  import { familyMemberDelete, familyMemberListData } from '/@/api/family/familyMember';
   import { useDrawer } from '/@/components/Drawer';
   import { FormProps } from '/@/components/Form';
-  import { useGlobSetting } from '/@/hooks/setting';
-  import memberImg from '/@/assets/images/member.png';
+  import { getAvatarUrl } from '../familyGraph/avatar'
 
   const { t } = useI18n('family.familyMember');
   const { showMessage } = useMessage();
@@ -264,14 +263,4 @@
     reload();
   }
 
-  function avatarUrl(record: FamilyMember){
-    if (record.avatarUrl) {
-      const { ctxPath } = useGlobSetting();
-      let url = record.avatarUrl || '/ctxPath/static/images/user1.jpg';
-      url = url.replace('/ctxPath/', ctxPath + '/');
-      return url || memberImg
-    }else{
-      return memberImg
-    }
-  }
 </script>

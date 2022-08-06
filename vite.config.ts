@@ -59,6 +59,9 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
       open: false,
       // Load proxy configuration from .env
       proxy: createProxy(VITE_PROXY),
+      hmr: {
+        overlay: false
+      }
     },
     build: {
       // target: 'es2015',
