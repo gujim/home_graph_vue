@@ -45,6 +45,7 @@
     "axios": "^0.24.0",
     "cropperjs": "^1.5.12",
     "crypto-js": "^4.1.1",
+    "dagre": "^0.8.5",
     "echarts": "^5.2.2",
     "lodash-es": "^4.17.21",
     "mockjs": "^1.1.0",

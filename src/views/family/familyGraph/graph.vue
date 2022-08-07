@@ -4,77 +4,95 @@
  * @author gujimeng
 -->
 <template>
-  <div class="graph-main" style="width: 100%;height: 100%;">
+  <div ref="graphMainRef" class="graph-main" style="width: 100%;height: 100%;">
+    <!-- 画布 -->
     <div id="container" style="width: 100%;height: 100%;"></div>
+    <!-- 顶部工具栏 -->
     <div class="graph-toolbar">
-      <a-button class="toolbar-btn" :ghost="true">
-        <Icon icon="ant-design:zoom-in-outlined" @click="zoomIn"></Icon>
+      <a-button class="toolbar-btn" :ghost="true" @click="zoomIn">
+        <Icon icon="ant-design:zoom-in-outlined"></Icon>
       </a-button>
-      <a-button class="toolbar-btn" :ghost="true">
+      <a-button class="toolbar-btn" :ghost="true" @click="zoomOut">
         <Icon icon="ant-design:zoom-out-outlined"></Icon>
       </a-button>
+      <Divider type="vertical" class="toolbar-divider"/>
+      <a-button class="toolbar-btn" :ghost="true" @click="refresh">
+        <Icon icon="ant-design:redo-outlined"></Icon>
+      </a-button>
+      <a-button class="toolbar-btn" :ghost="true" @click="centerMe">
+        <Icon icon="focus|svg"></Icon>
+      </a-button>
+      <Divider type="vertical" class="toolbar-divider"/>
+    </div>
+    <!-- 小地图 -->
+    <div id="miniMapContainer">
+
     </div>
   </div>
 </template>
 <script lang="ts">
 import { Icon } from '/@/components/Icon';
 import { defineComponent, onMounted, ref } from 'vue';
+import { Divider, Spin } from 'ant-design-vue';
+import { useLoading } from '/@/components/Loading';
 export default defineComponent({
   name: 'ViewsFamilyFamilyGraphGraph',
-  components: { Icon }
+  components: { Icon, Divider, Spin }
 });
 </script>
 <script lang="ts" setup>
-import { Graph } from '@antv/x6';
-import { FamilyMember, familyMemberListData } from '/@/api/family/familyMember';
-import { crateNodeEdge, registerNode } from './graph_x6';
-
-const graph = ref<Graph>()
-
+import { familyMemberListData } from '/@/api/family/familyMember';
+import { registerNode, FamilyMemberGraph } from './graph_x6';
+const graphMainRef = ref()
+const [openWrapLoading, closeWrapLoading] = useLoading({
+        target: graphMainRef,
+        props: {
+          tip: '正在加载数据...',
+          absolute: true,
+        },
+      });
+const graph = ref<FamilyMemberGraph>()
 registerNode()
 
-const dataArray = ref<Array<FamilyMember>>([])
-
 const refresh = () => {
-  return new Promise<void>((resolve) => {
-    familyMemberListData().then(res => {
-      dataArray.value = res.list
-      resolve()
-    })
-  })
+  openWrapLoading()
+  graph.value?.dispose()
+  familyMemberListData().then(res => {
+    let elem = document.getElementById("container")
+    let miniElem = document.getElementById("miniMapContainer")
+    if(elem && miniElem){
+      graph.value = new FamilyMemberGraph(
+        elem,
+        res.list,
+        {
+          key: "id",
+          parentKey: 'father',
+          children: 'children'
+        },
+        undefined,
+        {
+          // minimap: {
+          //   enabled: true,
+          //   container: miniElem,
+          //   width: 300,
+          //   height: 200,
+          // }
+        }
+      )
+    }
+  }).finally(() => closeWrapLoading())
 }
 
 onMounted(async () => {
-  await refresh()
-  graph.value = new Graph({
-    container: document.getElementById('container') as HTMLElement,
-    background: {
-      color: '#fcfcfc', // 设置画布背景颜色
-    },
-    grid: {
-      size: 1,      // 网格大小 10px
-    },
-    // 节点和边的交互行为
-    interacting: {
-      // 节点不可移动
-      nodeMovable: false,
-      // 边不可移动
-      edgeMovable: false,
-    },
-    // 画布拖动
-    panning: true,
-    // 滚动
-    scroller: false,
-    // 缩放
-    mousewheel: true
-  });
-  crateNodeEdge(graph.value, dataArray.value, {
-    key: "id",
-    parentKey: 'father',
-    children: 'children'
-  })
+  refresh()
 })
-const zoomIn = () => graph.value && graph.value.zoomTo(2)
+const zoomIn = () => graph.value && graph.value.zoom(0.2)
+const zoomOut = () => graph.value && graph.value.zoom(-0.2)
+const centerMe = () => {
+  if(graph.value?.getMe()){ 
+    graph.value && graph.value.centerCell(graph.value.getCellById(graph.value?.getMe().id))
+  }
+}
 </script>
 <style scoped lang="less">
 .graph-main{
@@ -91,6 +109,18 @@ const zoomIn = () => graph.value && graph.value.zoomTo(2)
       margin-top: 10px;
       border-radius: 5px;
     }
+    .toolbar-divider{
+      background: rgba(68, 55, 217, 0.6);
+      height: 1.8em;
+      margin-right: 0px;
+    }
+  }
+  #miniMapContainer{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    background: rgba(128, 128, 128, 1);
   }
 }
 </style>

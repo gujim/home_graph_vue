@@ -23,6 +23,7 @@ export interface FamilyMember extends BasicModel<FamilyMember> {
   avatar?: string; // 头像
   avatarUrl?: string; //头像url
   avatarBase64?: string; // 头像base64
+  isMe?: string; // 头像base64
   familyMemberPropertiesList?: any[]; // 子表列表
 }
 
@@ -40,3 +41,6 @@ export const familyMemberSave = (params?: any, data?: FamilyMember | any) =>
 
 export const familyMemberDelete = (params?: FamilyMember | any) =>
   defHttp.get<FamilyMember>({ url: adminPath + '/family/familyMember/delete', params });
+
+  export const familyMemberSetMe = (params?: FamilyMember | any) =>
+    defHttp.post<FamilyMember>({ url: adminPath + '/family/familyMember/setMe', params });

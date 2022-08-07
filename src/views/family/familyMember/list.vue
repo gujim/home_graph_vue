@@ -22,8 +22,15 @@
             <a @click="handleForm({ id: record.id })">
               {{ record.name }}
             </a>
-            <Icon icon="ant-design:man-outlined" style="color: green" v-if="record.sex === '1'"></Icon>
-            <Icon icon="ant-design:woman-outlined" style="color: pink" v-if="record.sex === '2'"></Icon>
+            <div style="display:flex;flex-direction: row;">
+              <Tooltip :title="`性别: ${dict.getDictLabel('sys_user_sex', record.sex)}`" :mouseEnterDelay="0.5" color="cyan">
+                <Icon icon="ant-design:man-outlined" style="color: green;" v-if="record.sex === '1'"></Icon>
+                <Icon icon="ant-design:woman-outlined" style="color: pink" v-if="record.sex === '2'"></Icon>
+              </Tooltip>
+              <Tooltip :title="`我在这`" :mouseEnterDelay="0.5" color="cyan"  v-if="record.isMe === '1'">
+                <Icon icon="here|svg"/>
+              </Tooltip>
+            </div>
           </div>
         </div>
       </template>
@@ -34,9 +41,11 @@
 <script lang="ts">
   import InputForm from './form.vue';
   import { TableImg } from '/@/components/Table';
+  import { useDict } from '/@/components/Dict';
+  import { Tooltip } from 'ant-design-vue'; 
   export default defineComponent({
     name: 'ViewsFamilyFamilyMemberList',
-    components: { Icon, BasicTable, InputForm, TableImg }
+    components: { Icon, BasicTable, InputForm, TableImg, Tooltip }
   });
 </script>
 <script lang="ts" setup>
@@ -46,7 +55,7 @@
   import { router } from '/@/router';
   import { Icon } from '/@/components/Icon';
   import { BasicTable, BasicColumn, useTable } from '/@/components/Table';
-  import { familyMemberDelete, familyMemberListData } from '/@/api/family/familyMember';
+  import { familyMemberDelete, familyMemberListData, familyMemberSetMe } from '/@/api/family/familyMember';
   import { useDrawer } from '/@/components/Drawer';
   import { FormProps } from '/@/components/Form';
   import { getAvatarUrl } from '../familyGraph/avatar'
@@ -217,6 +226,12 @@
     width: 160,
     actions: (record: Recordable) => [
       {
+        icon: 'here|svg',
+        title: t('设为我'),
+        onClick: handleSetMe.bind(this, { id: record.id }),
+        auth: 'family:familyMember:edit',
+      },
+      {
         icon: 'clarity:note-edit-line',
         title: t('编辑成员'),
         onClick: handleForm.bind(this, { id: record.id }),
@@ -259,8 +274,18 @@
     handleSuccess();
   }
 
+  async function handleSetMe(record: Recordable) {
+    const res = await familyMemberSetMe(record);
+    showMessage(res.message);
+    handleSuccess();
+  }
+
   function handleSuccess() {
     reload();
   }
+
+  // 加载性别字典
+  const dict = useDict()
+  dict.initDict(['sys_user_sex'])
 
 </script>
